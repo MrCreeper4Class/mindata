@@ -1,0 +1,102 @@
+console.clear() /*debug items*/;
+var kprs = null;
+var kd = function (e) {
+    kprs = e.keyCode;
+};
+var ku = function (e) {
+    kprs = null;
+}; /*keys*/
+
+const snap = screen.width - 150;
+const pipe1 = window.open('', '', 'width=1px,height=999px'); //the pipe
+const plr = window.open('', '', 'width=10px,height=120px'); //the player
+
+pipe1.moveTo(300,0)
+//window data
+plr.document.body.innerHTML = "<img style='position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover' src='https://cdn.atomix.vg/wp-content/uploads/2014/05/Flappy-Bird.png'>";
+pipe1.document.body.innerHTML = "<img id='img1' src='https://programmingmax.com/wp-content/uploads/2017/05/flappy-bird-on-scratch-pipes.png' style='position:fixed;top:-380;left:0;width:100%;height:200%;object-fit:cover'>";
+
+console.log('wait')
+setTimeout(() => {
+    console.log('running')
+
+    var px = snap;
+    var plry = 0; /*ypos*/
+    var plrv = 0; /*velocity*/
+    var jumptime = 0; /*jump cooldown*/
+
+    var img1 = pipe1.document.getElementById('img1');
+
+    plr.addEventListener('blur', function () { end('window was deselected and closed'); }); /*auto close*/
+
+    plr.document.addEventListener('keydown', kd, false);
+    plr.document.addEventListener('keyup', ku, false); /*more keys*/
+
+    function keyd(e) {
+        if (e === 87 || e === 38 || (e === 32 && jumptime < 0)) {
+            /*up arrow | W | space*/
+            plrv = -30;
+            console.log('JUMP');
+            jumptime = 3;
+        }
+        if (e === 40 || (e === 83 && jumptime < 0)) {
+            /*down arrow | S*/
+            plrv = 30;
+            console.log('FALL');
+            jumptime = 3;
+        }
+    }
+
+    function end(r){clearInterval(interid);closeall();console.log(r)} /*game end*/
+
+    function randval(){return Math.floor(Math.random()*381)-580;}
+
+    function bounds() {
+        if(plry<0){plry=0};
+        if(plry>620){end('DEATH rekt ur bad')};
+        if(px<2){px=snap;img1.style.top=randval()}
+        if(0<px&&px<150){
+        	detectCollision()
+        }
+    } /*end and top border*/
+
+    function detectCollision() {
+        var plrr = plr.document.body.getBoundingClientRect();
+        var pr = img1.getBoundingClientRect();
+
+        // Adjust the pipe rectangle to account for its movement
+        pr.top += window.screenY;
+        pr.left += window.screenX;
+
+        // Define the vertical middle of the pipe
+        var pmy = pr.top + (pr.height / 2);
+		const tst = 250
+        // Check if the player intersects the top or bottom sections of the pipe
+        if (pr.bottom > pr.top && plrr.top < pmy - tst ||
+            pr.top < pr.bottom && plrr.bottom > pmy + tst) {
+            document.write('the wall has been located');
+        }
+    }
+
+    function closeall() {
+        plr.close();
+        pipe1.close();
+        console.log('windows closed');
+    } /*closing all windows*/
+
+    function tick() {
+        if(kprs){keyd(kprs)}
+
+        plrv += 5;
+        plry += plrv;
+        px -= 35;
+
+        jumptime -= 1;
+        bounds();
+        plr.moveTo(150, plry); /*update position*/
+        pipe1.moveTo(px, 0)
+    }
+
+    /*end*/
+    var interid = setInterval(tick, 100);
+}, 1000)
